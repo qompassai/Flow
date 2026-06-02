@@ -1,0 +1,20 @@
+name = "Lua"
+extensions = [".lua"]
+lsp = "lua-language-server"
+linter = "luacheck"
+formatter = "stylua"
+test_runner = "busted"
+build_tool = "luarocks"
+package_manager = "luarocks"
+
+[frameworks]
+"neovim-plugin" = "Neovim plugin (Lua API) — preferred for nvim work"
+love2d = "2D game framework"
+openresty = "Nginx/Lua web server"
+bare = "Pure Lua script"
+
+[install_hints]
+"lua-language-server" = "pacman -S lua-language-server"
+stylua = "pacman -S stylua  # or: cargo install stylua"
+luacheck = "luarocks install luacheck"
+busted = "luarocks install busted"

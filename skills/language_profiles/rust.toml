@@ -1,0 +1,24 @@
+name = "Rust"
+extensions = [".rs"]
+lsp = "rust-analyzer"
+linter = "clippy"
+formatter = "rustfmt"
+test_runner = "cargo test"
+build_tool = "cargo"
+package_manager = "cargo"
+
+[frameworks]
+axum = "Ergonomic async web (tokio-based) — preferred for APIs"
+actix-web = "High-perf actor model web framework"
+clap = "CLI argument parser — preferred for CLIs"
+tokio = "Async runtime for custom apps"
+tonic = "gRPC framework"
+egui = "Immediate mode GUI"
+bevy = "ECS game engine"
+bare = "Pure Rust binary or library"
+
+[install_hints]
+rust-analyzer = "pacman -S rust-analyzer"
+cargo = "pacman -S rust  # includes cargo"
+clippy = "rustup component add clippy"
+rustfmt = "rustup component add rustfmt"

@@ -1,0 +1,13 @@
+{
+  "_comment": "This is a placeholder. Run 'nix flake lock' in the project directory to generate the real lock file.",
+  "nodes": {
+    "root": {
+      "inputs": {
+        "nixpkgs": "nixpkgs",
+        "flake-utils": "flake-utils"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

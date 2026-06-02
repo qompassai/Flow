@@ -1,0 +1,22 @@
+name = "TypeScript"
+extensions = [".ts", ".tsx"]
+lsp = "typescript-language-server"
+linter = "eslint"
+formatter = "prettier"
+test_runner = "vitest"
+build_tool = "vite / tsc / esbuild"
+package_manager = "pnpm / npm / bun"
+
+[frameworks]
+nextjs = "React full-stack framework with SSR/SSG"
+react = "UI component library (Vite)"
+express = "Node.js REST API framework"
+fastify = "High-performance Node.js framework"
+hono = "Ultrafast edge/node web framework — preferred for APIs"
+nestjs = "Angular-inspired backend framework"
+bare = "Pure TypeScript — node script or library"
+
+[install_hints]
+tsserver = "npm i -g typescript typescript-language-server"
+eslint = "npm i -g eslint"
+prettier = "npm i -g prettier"

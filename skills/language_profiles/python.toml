@@ -1,0 +1,24 @@
+name = "Python"
+extensions = [".py"]
+lsp = "pylsp / pyright"
+linter = "ruff"
+formatter = "ruff format"
+test_runner = "pytest"
+build_tool = "hatch"
+package_manager = "uv"
+
+[frameworks]
+fastapi = "Async REST API with OpenAPI docs — preferred for APIs"
+flask = "Lightweight WSGI web framework"
+django = "Full-stack web framework"
+click = "CLI framework — simple"
+typer = "FastAPI-style CLI framework — preferred for CLIs"
+langchain = "LLM pipeline/agent framework"
+streamlit = "Rapid data/ML dashboard"
+bare = "Pure Python script or module"
+
+[install_hints]
+ruff = "pip install ruff  # or: pacman -S ruff"
+pylsp = "pip install python-lsp-server"
+pytest = "pip install pytest"
+uv = "pip install uv  # or: pacman -S uv"

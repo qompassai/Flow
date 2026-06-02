@@ -1,0 +1,20 @@
+name = "Bash"
+extensions = [".sh", ".bash"]
+lsp = "bash-language-server"
+linter = "shellcheck"
+formatter = "shfmt"
+test_runner = "bats"
+build_tool = "make"
+package_manager = "N/A"
+
+[frameworks]
+"systemd-service" = "systemd service wrapper script"
+"cli-tool" = "Command-line tool with argument parsing"
+deployment = "Deployment/provisioning script"
+bare = "General purpose shell script"
+
+[install_hints]
+"bash-language-server" = "npm i -g bash-language-server"
+shellcheck = "pacman -S shellcheck"
+shfmt = "pacman -S shfmt"
+bats = "pacman -S bash-bats  # or: npm i -g bats"

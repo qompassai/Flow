@@ -1,0 +1,28 @@
+[ollama]
+base_url = "http://localhost:11434"
+model = "qwen2.5-coder:14b"        # Change to your preferred model
+temperature = 0.2
+context_length = 16384
+timeout = 120
+
+[agent]
+max_iterations = 20
+pause_on_uncertainty = true
+uncertainty_threshold = 0.7
+
+[tools]
+web_search_backend = "duckduckgo"   # "duckduckgo" or "searxng"
+searxng_url = "http://localhost:8080"
+shell_timeout = 30
+plugins_dir = "plugins"
+
+[self_improve]
+enabled = true
+feedback_after_session = true
+auto_commit_skills = true
+
+[tui]
+theme = "dark"
+show_thinking = true
+
+workspace_dir = "."

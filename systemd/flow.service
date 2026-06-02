@@ -1,0 +1,17 @@
+[Unit]
+Description=Flow Local AI Workflow System
+After=network.target ollama.service
+Wants=ollama.service
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/flow
+WorkingDirectory=%h/projects
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=default.target

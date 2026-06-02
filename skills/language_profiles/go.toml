@@ -1,0 +1,20 @@
+name = "Go"
+extensions = [".go"]
+lsp = "gopls"
+linter = "golangci-lint"
+formatter = "gofmt / goimports"
+test_runner = "go test"
+build_tool = "go build"
+package_manager = "go mod"
+
+[frameworks]
+gin = "Fast HTTP web framework"
+echo = "High performance web framework"
+fiber = "Express-inspired web framework"
+cobra = "CLI framework (used by kubectl, git) — preferred for CLIs"
+bare = "Pure Go — no framework"
+
+[install_hints]
+gopls = "go install golang.org/x/tools/gopls@latest"
+go = "pacman -S go"
+golangci-lint = "go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest"
