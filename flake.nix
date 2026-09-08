@@ -24,7 +24,7 @@
         # The flow package itself
         flowPkg = python.pkgs.buildPythonPackage {
           pname = "flow";
-          version = "0.1.0";
+          version = "0.2.0";
           src = ./.;
           format = "pyproject";
           nativeBuildInputs = [ python.pkgs.hatchling ];
@@ -68,7 +68,7 @@
           shellHook = ''
             echo "Flow dev environment loaded"
             echo "Python: $(python --version)"
-            echo "Run: pip install -e . && flow"
+            echo "Run: uv venv .venv && uv pip install --python .venv/bin/python -e '.[editor,dev]'"
           '';
         };
       }

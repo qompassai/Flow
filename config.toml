@@ -1,28 +1,38 @@
+# Example operator configuration. Loaded ONLY with --config config.toml.
+# Root values MUST precede TOML tables. Relative workspace paths anchor to this file.
+workspace_dir = "."
+
 [ollama]
-base_url = "http://localhost:11434"
-model = "qwen2.5-coder:14b"        # Change to your preferred model
+base_url = "http://127.0.0.1:11434"
+model = "qwen2.5-coder:7b"
 temperature = 0.2
 context_length = 16384
-timeout = 120
+timeout = 120 # seconds
+allow_remote = false
+
+[models]
+# Empty strings inherit ollama.model. Set any role to a separately installed local model.
+planner = ""
+coder = ""
+reviewer = ""
 
 [agent]
-max_iterations = 20
-pause_on_uncertainty = true
-uncertainty_threshold = 0.7
+max_iterations = 6
+max_cycles = 2
+max_tool_calls = 64
+max_context_chars = 100000
+max_task_chars = 16000
 
-[tools]
-web_search_backend = "duckduckgo"   # "duckduckgo" or "searxng"
-searxng_url = "http://localhost:8080"
-shell_timeout = 30
-plugins_dir = "plugins"
+[checks.tests]
+cmd = [".venv/bin/python", "-m", "pytest", "-q"]
+timeout = 120000 # milliseconds
+required = true
+kind = "test"
+filetypes = ["python"]
 
-[self_improve]
-enabled = true
-feedback_after_session = true
-auto_commit_skills = true
-
-[tui]
-theme = "dark"
-show_thinking = true
-
-workspace_dir = "."
+[checks.lint]
+cmd = [".venv/bin/ruff", "check", "flow", "tests"]
+timeout = 30000
+required = true
+kind = "lint"
+filetypes = ["python"]

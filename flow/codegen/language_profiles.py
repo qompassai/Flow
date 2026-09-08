@@ -1,9 +1,16 @@
 """Language stack profiles — LSPs, linters, formatters, and framework options."""
+
 from __future__ import annotations
 
+import copy
 import tomllib
+from dataclasses import dataclass
+from importlib.resources import files
 from pathlib import Path
-from dataclasses import dataclass, field
+
+# A profile directory is operator-curated; one file per language is the expected shape, so a
+# directory with more entries than this is misconfigured rather than merely large.
+PROFILE_FILES_MAX = 256
 
 
 @dataclass
@@ -109,8 +116,13 @@ BUILTIN_PROFILES: dict[str, LanguageProfile] = {
         project_templates={
             "nextjs": "npx create-next-app@latest {name} --typescript",
             "react": "npm create vite@latest {name} -- --template react-ts",
-            "express": "mkdir {name} && cd {name} && npm init -y && npm i express typescript @types/express ts-node",
-            "bare": "mkdir {name} && cd {name} && npm init -y && npm i typescript && npx tsc --init",
+            "express": (
+                "mkdir {name} && cd {name} && npm init -y && "
+                "npm i express typescript @types/express ts-node"
+            ),
+            "bare": (
+                "mkdir {name} && cd {name} && npm init -y && npm i typescript && npx tsc --init"
+            ),
         },
     ),
     "go": LanguageProfile(
@@ -134,8 +146,13 @@ BUILTIN_PROFILES: dict[str, LanguageProfile] = {
             "go": "go (pacman -S go)",
         },
         project_templates={
-            "gin": "mkdir {name} && cd {name} && go mod init {name} && go get github.com/gin-gonic/gin",
-            "cobra": "mkdir {name} && cd {name} && go mod init {name} && go install github.com/spf13/cobra-cli@latest && cobra-cli init",
+            "gin": (
+                "mkdir {name} && cd {name} && go mod init {name} && go get github.com/gin-gonic/gin"
+            ),
+            "cobra": (
+                "mkdir {name} && cd {name} && go mod init {name} && "
+                "go install github.com/spf13/cobra-cli@latest && cobra-cli init"
+            ),
             "bare": "mkdir {name} && cd {name} && go mod init {name}",
         },
     ),
@@ -241,18 +258,22 @@ BUILTIN_PROFILES: dict[str, LanguageProfile] = {
 
 def load_profiles(skills_dir: Path | None = None) -> dict[str, LanguageProfile]:
     """Load profiles from skills/language_profiles/*.toml and merge with builtins."""
-    profiles = dict(BUILTIN_PROFILES)
+    profiles = copy.deepcopy(BUILTIN_PROFILES)
 
     if skills_dir is None:
-        skills_dir = Path("skills/language_profiles")
+        skills_dir = files("flow").joinpath("skills/language_profiles")
 
-    if not skills_dir.exists():
+    if not skills_dir.is_dir():
         return profiles
 
-    for toml_file in skills_dir.glob("*.toml"):
-        lang = toml_file.stem
+    for scanned, toml_file in enumerate(skills_dir.iterdir()):
+        if scanned >= PROFILE_FILES_MAX:
+            break
+        if not toml_file.name.endswith(".toml"):
+            continue
+        lang = toml_file.name.removesuffix(".toml")
         try:
-            with open(toml_file, "rb") as f:
+            with toml_file.open("rb") as f:
                 data = tomllib.load(f)
             # Merge into existing or create new profile
             if lang in profiles:

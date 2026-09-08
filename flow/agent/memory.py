@@ -1,10 +1,11 @@
 """SQLite-backed short + long-term memory store."""
+
 from __future__ import annotations
 
 import json
 import sqlite3
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 
 class MemoryStore:
@@ -42,7 +43,7 @@ class MemoryStore:
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
                 "INSERT INTO memories (query, response, tags, created_at) VALUES (?, ?, ?, ?)",
-                (query, response, json.dumps(tags or []), datetime.utcnow().isoformat())
+                (query, response, json.dumps(tags or []), datetime.utcnow().isoformat()),
             )
             conn.commit()
 
@@ -57,7 +58,7 @@ class MemoryStore:
                     ORDER BY rank
                     LIMIT ?
                     """,
-                    (query, top_k)
+                    (query, top_k),
                 ).fetchall()
             return [f"Q: {r[0][:100]}\nA: {r[1][:200]}" for r in rows]
         except Exception:
