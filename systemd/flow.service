@@ -1,14 +1,10 @@
 [Unit]
-Description=Flow Local AI Workflow System
-After=network.target ollama.service
-Wants=ollama.service
+Description=Flow local capability snapshot (not an MCP daemon)
 
 [Service]
-Type=simple
-ExecStart=%h/.local/bin/flow
+Type=oneshot
+ExecStart=%h/.local/bin/flow status --workspace %h/projects
 WorkingDirectory=%h/projects
-Restart=on-failure
-RestartSec=5
 StandardOutput=journal
 StandardError=journal
 Environment=PYTHONUNBUFFERED=1

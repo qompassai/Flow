@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "flow"
-version = "0.1.0"
+version = "0.2.0"
 description = "Local AI Workflow System — Amor Fati Labs"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -16,6 +16,10 @@ dependencies = [
     "rich>=13.0",
     "prompt_toolkit>=3.0",
 ]
+
+[project.optional-dependencies]
+editor = ["pynvim>=0.5,<0.7"]
+dev = ["pytest>=8", "ruff>=0.9", "build>=1", "hatchling>=1.25"]
 
 [project.scripts]
 flow = "flow.main:main"

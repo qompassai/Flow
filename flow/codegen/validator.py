@@ -1,4 +1,5 @@
 """Code validator — wraps LSP check and feeds results to the agent."""
+
 from __future__ import annotations
 
 import json
@@ -34,14 +35,14 @@ class CodeValidator:
     def is_clean(self, language: str, file_path: str | None = None) -> bool:
         """Return True if code passes LSP check with no errors."""
         result = self.validate(language, file_path)
-        return result.get("clean", False)
+        return result.get("status") == "ok" and result.get("clean") is True
 
     def format_for_agent(self, language: str, file_path: str | None = None) -> str:
         """Run LSP check and return a human-readable string for the agent prompt."""
         result = self.validate(language, file_path)
         if result.get("error"):
             return f"LSP Error: {result['error']}"
-        if result.get("clean"):
+        if result.get("status") == "ok" and result.get("clean") is True:
             return f"✓ {language} code passes all checks."
         diagnostics = result.get("diagnostics", result.get("raw_output", "Unknown errors"))
         return f"LSP Issues ({language}):\n{json.dumps(diagnostics, indent=2)[:2000]}"

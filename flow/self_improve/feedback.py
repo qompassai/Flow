@@ -1,7 +1,7 @@
 """Session feedback collection and storage."""
+
 from __future__ import annotations
 
-import json
 import sqlite3
 from datetime import datetime
 from pathlib import Path
@@ -43,8 +43,7 @@ class FeedbackStore:
                 """INSERT INTO feedback
                 (session_id, rating, comment, prompt_used, outcome, created_at)
                 VALUES (?, ?, ?, ?, ?, ?)""",
-                (session_id, rating, comment, prompt_used, outcome,
-                 datetime.utcnow().isoformat())
+                (session_id, rating, comment, prompt_used, outcome, datetime.utcnow().isoformat()),
             )
             conn.commit()
 
@@ -52,7 +51,7 @@ class FeedbackStore:
         with sqlite3.connect(self.db_path) as conn:
             rows = conn.execute(
                 "SELECT * FROM feedback WHERE rating <= ? ORDER BY created_at DESC LIMIT ?",
-                (threshold, limit)
+                (threshold, limit),
             ).fetchall()
         cols = ["id", "session_id", "rating", "comment", "prompt_used", "outcome", "created_at"]
         return [dict(zip(cols, r)) for r in rows]
