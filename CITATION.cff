@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+title: "flow"
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: "Porter"
+    given-names: "Matthew A."
+    orcid: "https://orcid.org/0000-0002-0302-4812"
+    affiliation: "Qompass AI"
+version: "v2026-09-10"
+date-released: "2026-09-10"
+repository-code: "https://github.com/qompassai/flow"
+license: "Q-CDA-1.0"
+keywords:
+  - AI
+  - Education
+  - Healthcare
+  - Post-Quantum Cryptography
+  - Quantum
+  - data science
+  - machine learning
+  - python
+abstract: "AI Flywheel"
