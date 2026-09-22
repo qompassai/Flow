@@ -1,5 +1,3 @@
-# Example operator configuration. Loaded ONLY with --config config.toml.
-# Root values MUST precede TOML tables. Relative workspace paths anchor to this file.
 workspace_dir = "."
 
 [ollama]

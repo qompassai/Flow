@@ -12,8 +12,6 @@ from dataclasses import asdict
 from flow.config import CHECKS_MAX, CheckConfig
 from flow.workspace import Workspace, WorkspaceError
 
-# Only the tail of each stream is reported, because failures print their cause last and a
-# noisy check must not be able to inflate a report (or the MCP frame carrying it) unboundedly.
 OUTPUT_BYTES_MAX = 16000
 MILLISECONDS_PER_SECOND = 1000
 
@@ -55,7 +53,6 @@ class CheckRunner:
         except WorkspaceError as exc:
             return {**result, "status": "stale", "error": str(exc)}
         started = time.monotonic()
-        # Temporary files avoid unbounded memory consumption by noisy child processes.
         with tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr:
             result.update(self._execute(check, stdout, stderr))
             result.update(_tail("stdout", stdout))
@@ -75,7 +72,6 @@ class CheckRunner:
         outcome: dict = {}
         process = None
         try:
-            # Process groups ensure a timed-out check's grandchildren are terminated on POSIX.
             process = subprocess.Popen(
                 check.cmd,
                 cwd=self.workspace.root,
@@ -96,7 +92,6 @@ class CheckRunner:
             outcome.update(status="error", error=str(exc))
         finally:
             if process is not None:
-                # Also reap descendants that outlive an otherwise successful parent.
                 try:
                     if os.name == "posix":
                         os.killpg(process.pid, signal.SIGKILL)

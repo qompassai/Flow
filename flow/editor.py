@@ -26,13 +26,10 @@ READ_ONLY_EDITOR_NAMES = EDITOR_NAMES - {"editor_lint", "editor_check"}
 BRIDGE_FILE_NAMES = frozenset({"file_read", "file_write"})
 SCHEMAS_LUA = "return require('rose.tools').schemas()"
 CALL_LUA = "return require('rose.tools').call(...)"
-# Bounds mirror the CLI: a request may take at most --editor-timeout, and the worker gets a
-# short grace period beyond that to unwind before the bridge is declared unavailable.
 TIMEOUT_S_DEFAULT = 120.0
 TIMEOUT_S_MIN = 0.1
 TIMEOUT_S_MAX = 660.0
 WORKER_GRACE_S = 2.0
-# Rose advertises a small, fixed tool set; more entries indicate a broken or foreign server.
 SCHEMAS_MAX = 64
 
 assert TIMEOUT_S_MIN < TIMEOUT_S_DEFAULT <= TIMEOUT_S_MAX
@@ -195,8 +192,6 @@ class EditorBridge:
                 return
             self._closed = True
             if self._session is not None:
-                # Public threadsafe scheduling interrupts a pending request immediately;
-                # all actual session methods still execute on their owning worker.
                 self._session.threadsafe_call(self._session.stop)
                 self._executor.submit(self._session.close)
         self._executor.shutdown(wait=True, cancel_futures=False)

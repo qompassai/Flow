@@ -11,8 +11,6 @@ from dataclasses import dataclass, field, fields
 from pathlib import Path
 from urllib.parse import urlsplit
 
-# Named checks are the only executable surface; keeping their count and argv short bounds the
-# work `flow check` can be asked to do and the size of every status/report payload.
 CHECKS_MAX = 32
 CHECK_ARGV_MAX = 128
 CHECK_NAME_LENGTH_MAX = 64

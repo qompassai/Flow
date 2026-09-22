@@ -1,19 +1,35 @@
 """Newline-delimited MCP stdio server. Stdout is exclusively JSON-RPC."""
 
-from __future__ import annotations
-
 import contextlib
 import json
 import sys
+from typing import BinaryIO, NoReturn, Protocol, TextIO, TypedDict, cast
 
 from flow import __version__
+from flow.json_types import is_object
 
 PROTOCOL_VERSION = "2025-11-25"
 SUPPORTED_VERSIONS = {PROTOCOL_VERSION, "2025-06-18", "2025-03-26"}
 # One newline-delimited JSON-RPC frame; a task plus arguments never approaches this, so anything
 # larger is a framing fault and the connection is closed instead of draining the rest.
 MAX_FRAME_BYTES = 1024 * 1024
-TOOLS = [
+
+
+class ToolSpec(TypedDict):
+    name: str
+    description: str
+    inputSchema: dict[str, object]
+
+
+class MCPRuntime(Protocol):
+    def status(self) -> object: ...
+    def check(self, name: str | None = None) -> object: ...
+    def run(self, task: str) -> object: ...
+    def close(self) -> None: ...
+
+
+RequestID = str | int | None
+TOOLS: list[ToolSpec] = [
     {
         "name": "flow_run",
         "description": "Bounded local planner/coder/reviewer run with real verification",
@@ -41,17 +57,19 @@ TOOLS = [
 ]
 
 
-def error(request_id, code: int, message: str):
+def error(request_id: RequestID, code: int, message: str) -> dict[str, object]:
     assert isinstance(code, int)
     assert isinstance(message, str)
     return {"jsonrpc": "2.0", "id": request_id, "error": {"code": code, "message": message}}
 
 
-def _result(request_id, result: dict):
+def _result(request_id: RequestID, result: dict[str, object]) -> dict[str, object]:
     return {"jsonrpc": "2.0", "id": request_id, "result": result}
 
 
-def _tool_result(request_id, result: dict, *, is_error: bool):
+def _tool_result(
+    request_id: RequestID, result: dict[str, object], *, is_error: bool
+) -> dict[str, object]:
     assert isinstance(result, dict)
     text = json.dumps(result, ensure_ascii=True, allow_nan=False)
     return _result(
@@ -64,26 +82,32 @@ def _tool_result(request_id, result: dict, *, is_error: bool):
     )
 
 
-def _invalid_constant(value):
+def _invalid_constant(value: str) -> NoReturn:
     raise ValueError(f"Invalid JSON constant {value}")
 
 
 class MCPServer:
-    def __init__(self, runtime):
+    runtime: MCPRuntime
+    initialized: bool
+    ready: bool
+    frames_read: int
+
+    def __init__(self, runtime: MCPRuntime) -> None:
         assert runtime is not None
         self.runtime = runtime
         self.initialized = False
         self.ready = False
         self.frames_read = 0
 
-    def handle(self, request):
+    def handle(self, request: object) -> dict[str, object] | None:
         """Dispatch one decoded JSON-RPC message; returns the reply or None for notifications."""
-        if not isinstance(request, dict):
+        if not is_object(request):
             return error(None, -32600, "Invalid Request: expected one JSON-RPC object, not a batch")
         request_id = request.get("id")
         if (
             request.get("jsonrpc") != "2.0"
             or not isinstance(request.get("method"), str)
+            or ("id" in request and request_id is None)
             or isinstance(request_id, bool)
             or not isinstance(request_id, (str, int, type(None)))
         ):
@@ -91,7 +115,7 @@ class MCPServer:
         notification = "id" not in request
         method = request["method"]
         params = request.get("params", {})
-        if not isinstance(params, dict):
+        if not is_object(params):
             return None if notification else error(request_id, -32602, "Params must be an object")
         if notification:
             if method == "notifications/initialized" and self.initialized:
@@ -110,28 +134,34 @@ class MCPServer:
             return self._tools_call(request_id, params)
         return error(request_id, -32601, f"Method not found: {method}")
 
-    def _initialize(self, request_id, params: dict):
+    def _initialize(self, request_id: RequestID, params: dict[str, object]) -> dict[str, object]:
         assert isinstance(params, dict)
         if self.initialized:
             return error(request_id, -32600, "Already initialized")
-        if params.get("protocolVersion") not in SUPPORTED_VERSIONS:
-            return error(
-                request_id,
-                -32602,
-                "Unsupported protocolVersion; supported: " + ", ".join(sorted(SUPPORTED_VERSIONS)),
-            )
+        version = params.get("protocolVersion")
+        if not isinstance(version, str) or not version:
+            return error(request_id, -32602, "protocolVersion must be a nonempty string")
+        info = params.get("clientInfo")
+        if (
+            not is_object(params.get("capabilities"))
+            or not is_object(info)
+            or not isinstance(info.get("name"), str)
+            or not isinstance(info.get("version"), str)
+        ):
+            return error(request_id, -32602, "Initialize requires capabilities and clientInfo")
+        negotiated = version if version in SUPPORTED_VERSIONS else PROTOCOL_VERSION
         self.initialized = True
         return _result(
             request_id,
             {
-                "protocolVersion": params["protocolVersion"],
+                "protocolVersion": negotiated,
                 "capabilities": {"tools": {}},
                 "serverInfo": {"name": "flow", "version": __version__},
                 "instructions": "Trusted workspace named checks only. Missing checks never verify.",
             },
         )
 
-    def _tools_call(self, request_id, params: dict):
+    def _tools_call(self, request_id: RequestID, params: dict[str, object]) -> dict[str, object]:
         from flow.runtime import validate_arguments
 
         assert self.ready
@@ -147,23 +177,38 @@ class MCPServer:
             validate_arguments(args, spec["inputSchema"])
         except (ValueError, TypeError) as exc:
             return error(request_id, -32602, str(exc))
+        if not is_object(args):
+            return error(request_id, -32602, "Arguments must be an object")
+        result: object
         try:
             # Third-party clients must never contaminate the transport.
             with contextlib.redirect_stdout(sys.stderr):
                 if name == "flow_status":
                     result = self.runtime.status()
                 elif name == "flow_check":
-                    result = self.runtime.check(**args)
+                    check_name = args.get("name")
+                    if check_name is not None and not isinstance(check_name, str):
+                        return error(request_id, -32602, "Check name must be a string")
+                    result = self.runtime.check(check_name)
                 else:
-                    result = self.runtime.run(**args)
+                    task = args.get("task")
+                    if not isinstance(task, str):
+                        return error(request_id, -32602, "Task must be a string")
+                    result = self.runtime.run(task)
         except Exception as exc:
-            result = {"status": "error", "error": str(exc)}
-            return _tool_result(request_id, result, is_error=True)
-        return _tool_result(request_id, result, is_error=result.get("status") != "ok")
+            return _tool_result(request_id, {"status": "error", "error": str(exc)}, is_error=True)
+        if not is_object(result):
+            return error(request_id, -32603, "Runtime returned a non-object result")
+        try:
+            return _tool_result(request_id, result, is_error=result.get("status") != "ok")
+        except (TypeError, ValueError, RecursionError):
+            return error(request_id, -32603, "Runtime returned non-JSON data")
 
-    def serve(self, source=None, target=None):
-        source = source or sys.stdin.buffer
-        target = target or sys.stdout
+    def serve(self, source: BinaryIO | None = None, target: TextIO | None = None) -> None:
+        source = cast(BinaryIO, sys.stdin.buffer) if source is None else source
+        target = sys.stdout if target is None else target
+        if target is None:
+            raise ValueError("MCP requires input and output streams")
         try:
             # This is the transport event loop: it runs until the client closes stdin or sends
             # an oversize frame, so each iteration is bounded by MAX_FRAME_BYTES instead.
@@ -176,26 +221,30 @@ class MCPServer:
                 if len(frame) > MAX_FRAME_BYTES:
                     # Oversize input is a terminal framing error, not an unbounded drain.
                     reply = error(None, -32700, "Frame exceeds 1 MiB; connection closing")
-                    target.write(json.dumps(reply) + "\n")
+                    _ = target.write(json.dumps(reply) + "\n")
                     target.flush()
                     break
                 if not frame.strip():
                     continue
                 reply = self._reply(frame)
                 if reply is not None:
-                    target.write(json.dumps(reply, ensure_ascii=True, allow_nan=False) + "\n")
+                    _ = target.write(json.dumps(reply, ensure_ascii=True, allow_nan=False) + "\n")
                     target.flush()
         except (BrokenPipeError, ConnectionResetError):
             pass
         finally:
             self.runtime.close()
 
-    def _reply(self, frame: bytes):
+    def _reply(self, frame: bytes) -> dict[str, object] | None:
         assert 0 < len(frame) <= MAX_FRAME_BYTES
         try:
-            request = json.loads(frame, parse_constant=_invalid_constant)
-            return self.handle(request)
+            request = cast(object, json.loads(frame, parse_constant=_invalid_constant))
         except (ValueError, UnicodeError, RecursionError):
             return error(None, -32700, "Parse error")
+        try:
+            return self.handle(request)
         except Exception:
-            return error(None, -32603, "Internal error")
+            request_id = request.get("id") if is_object(request) else None
+            if isinstance(request_id, bool) or not isinstance(request_id, (str, int)):
+                request_id = None
+            return error(request_id, -32603, "Internal error")

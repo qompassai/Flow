@@ -21,10 +21,9 @@
           ruff
         ]);
 
-        # The flow package itself
         flowPkg = python.pkgs.buildPythonPackage {
           pname = "flow";
-          version = "0.2.0";
+          version = "0.1.0";
           src = ./.;
           format = "pyproject";
           nativeBuildInputs = [ python.pkgs.hatchling ];
@@ -61,7 +60,7 @@
             pkgs.go
             pkgs.gopls
             pkgs.nodejs
-            pkgs.clang-tools  # clangd + clang-format
+            pkgs.clang-tools 
             pkgs.git
           ];
 
