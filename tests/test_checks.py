@@ -1,18 +1,17 @@
-from __future__ import annotations
-
 import sys
 import time
+from pathlib import Path
 
 from flow.checks import CheckRunner
 from flow.config import CheckConfig
 from flow.workspace import Workspace
 
 
-def runner(root, checks, trusted=True):
+def runner(root: Path, checks: dict[str, CheckConfig], trusted: bool = True) -> CheckRunner:
     return CheckRunner(Workspace(root, trusted=trusted), checks)
 
 
-def test_missing_optional_and_empty_checks_never_verify(tmp_path):
+def test_missing_optional_and_empty_checks_never_verify(tmp_path: Path) -> None:
     checks = runner(tmp_path, {})
     assert checks.run_all()["verified"] is False
     assert checks.run_all("missing")["checks"][0]["status"] == "unavailable"
@@ -22,7 +21,7 @@ def test_missing_optional_and_empty_checks_never_verify(tmp_path):
     assert checks.run_all()["verified"] is False
 
 
-def test_configured_check_executes_only_exact_argv_in_pinned_workspace(tmp_path):
+def test_configured_check_executes_only_exact_argv_in_pinned_workspace(tmp_path: Path) -> None:
     script = "from pathlib import Path; print(Path.cwd()); print('literal; echo unsafe')"
     checks = runner(tmp_path, {"smoke": CheckConfig((sys.executable, "-c", script))})
     result = checks.run_all()
@@ -32,7 +31,7 @@ def test_configured_check_executes_only_exact_argv_in_pinned_workspace(tmp_path)
     assert result["checks"][0]["source"] == "flow.check"
 
 
-def test_failure_missing_executable_and_trust_are_explicit(tmp_path):
+def test_failure_missing_executable_and_trust_are_explicit(tmp_path: Path) -> None:
     checks = {
         "bad": CheckConfig((sys.executable, "-c", "raise SystemExit(7)")),
         "missing": CheckConfig(("flow-no-such-executable-fixture",)),
@@ -46,7 +45,7 @@ def test_failure_missing_executable_and_trust_are_explicit(tmp_path):
     )
 
 
-def test_bounded_output_and_timeout(tmp_path):
+def test_bounded_output_and_timeout(tmp_path: Path) -> None:
     checks = {
         "noisy": CheckConfig((sys.executable, "-c", "print('x'*100000)")),
         "slow": CheckConfig((sys.executable, "-c", "import time; time.sleep(10)"), timeout=50),
@@ -59,7 +58,7 @@ def test_bounded_output_and_timeout(tmp_path):
     assert time.monotonic() - start < 3
 
 
-def test_timeout_kills_check_process_group(tmp_path):
+def test_timeout_kills_check_process_group(tmp_path: Path) -> None:
     child_code = (
         "import time; from pathlib import Path; time.sleep(1); Path('leak').write_text('bad')"
     )

@@ -7,9 +7,9 @@ name = "flow"
 version = "0.2.0"
 description = "Local AI Workflow System — Amor Fati Labs"
 readme = "README.md"
-requires-python = ">=3.11"
-license = {text = "MIT"}
-authors = [{name = "Amor Fati Labs", email = "matt@aflabs.io"}]
+requires-python = ">=3.14"
+license = { text = "MIT" }
+authors = [{ name = "Qompass AI", email = "matt@aflabs.io" }]
 
 dependencies = [
     "httpx>=0.27",
@@ -27,9 +27,82 @@ flow = "flow.main:main"
 [tool.hatch.build.targets.wheel]
 packages = ["flow"]
 
+# -----------------------------------------------------------------------
+# ruff — linter and formatter
+# https://docs.astral.sh/ruff/
+# -----------------------------------------------------------------------
 [tool.ruff]
 line-length = 100
-target-version = "py311"
+target-version = "py314"
 
 [tool.ruff.lint]
-select = ["E", "F", "I"]
+select = ["E", "F", "I", "UP", "B", "SIM", "C4", "N", "W"]
+ignore = ["E4", "E7"]
+
+[tool.ruff.format]
+quote-style = "single"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]
+
+[tool.basedpyright]
+pythonVersion = "3.14"
+typeCheckingMode = "standard"
+include = ["flow"]
+exclude = ["**/__pycache__", "**/.venv", "build", "dist"]
+useLibraryCodeForTypes = true
+reportMissingTypeStubs = "warning"
+
+[[tool.basedpyright.executionEnvironments]]
+root = "tests"
+reportUnknownParameterType = "none"
+reportMissingParameterType = "none"
+reportUnknownArgumentType = "none"
+reportUnusedCallResult = "none"
+
+[[tool.basedpyright.executionEnvironments]]
+root = "flow"
+
+# -----------------------------------------------------------------------
+# ty — type checker
+# https://docs.astral.sh/ty/reference/configuration/
+# -----------------------------------------------------------------------
+[tool.ty.environment]
+# ty auto-detects a `.venv` or falls back to `python3`/`python` on PATH,
+# so this is only needed if that auto-detection misbehaves on a given
+# machine. Pinned here since this exact fallback was the root cause of
+# the "Cannot resolve imported module `pytest`" errors on this box —
+# adjust or remove this line per-platform if it stops being necessary,
+# since it is not portable across Arch/Termux/Windows as a hardcoded path.
+python = "/usr/bin/python3"
+
+[tool.ty.src]
+include = ["flow", "tests"]
+exclude = ["build", "dist"]
+
+[tool.ty.rules]
+possibly-unresolved-reference = "warn"
+
+[[tool.ty.overrides]]
+include = ["tests/**"]
+
+[tool.ty.overrides.rules]
+possibly-unresolved-reference = "warn"
+
+# -----------------------------------------------------------------------
+# pyrefly — type checker
+# https://pyrefly.org/en/docs/configuration/
+# -----------------------------------------------------------------------
+[tool.pyrefly]
+project-includes = ["flow", "tests"]
+project-excludes = ["build", "dist"]
+python-platform = "linux"
+# Left unset intentionally: pyrefly's own default already resolves
+# `$(which python3)` then `$(which python)`, which is the portable
+# behavior across Arch/Termux/Windows. Uncomment only if that default
+# resolution proves wrong on a specific machine:
+# python-interpreter-path = "/usr/bin/python3"
+
+[tool.pyrefly.errors]
+# example: disable a specific error kind project-wide
+#bad-assignment = false

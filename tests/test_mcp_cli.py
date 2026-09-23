@@ -111,7 +111,7 @@ def test_parse_errors_recover_and_protocol_stdout_is_clean(tmp_path):
     assert not result.stderr
 
 
-def test_unsupported_protocol_and_lifecycle_errors(tmp_path):
+def test_invalid_initialize_and_lifecycle_errors(tmp_path):
     _, frames = execute(
         tmp_path,
         [

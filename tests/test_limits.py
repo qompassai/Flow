@@ -1,16 +1,16 @@
+#! /usr/bin/env python3
 """Explicit limits and programmer-error assertions introduced by the Tiger Style pass.
 
 Each test drives one bound across the valid/invalid boundary: the largest accepted input
 succeeds and the smallest oversize input is rejected with the documented error type.
 """
 
-from __future__ import annotations
-
 import http.server
 import io
 import json
 import sys
 import threading
+from pathlib import Path
 
 import pytest
 
@@ -27,8 +27,8 @@ from flow.runtime import SCHEMA_DEPTH_MAX, SCHEMA_NODES_MAX, validate_arguments
 from flow.workspace import PATH_DEPTH_MAX, PATH_LENGTH_MAX, Workspace, WorkspaceError
 
 
-def nested_schema(depth: int) -> dict:
-    schema: dict = {"type": "string"}
+def nested_schema(depth: int) -> dict[str, object]:
+    schema: dict[str, object] = {"type": "string"}
     for _ in range(depth):
         schema = {"type": "object", "properties": {"child": schema}, "required": ["child"]}
     return schema
@@ -41,7 +41,7 @@ def nested_value(depth: int) -> object:
     return value
 
 
-def test_validate_arguments_depth_limit_is_iterative_and_exact():
+def test_validate_arguments_depth_limit_is_iterative_and_exact() -> None:
     validate_arguments(nested_value(SCHEMA_DEPTH_MAX), nested_schema(SCHEMA_DEPTH_MAX))
     with pytest.raises(ValueError, match="nesting depth"):
         validate_arguments(nested_value(SCHEMA_DEPTH_MAX + 1), nested_schema(SCHEMA_DEPTH_MAX + 1))
@@ -51,8 +51,8 @@ def test_validate_arguments_depth_limit_is_iterative_and_exact():
         validate_arguments(nested_value(deep), nested_schema(deep))
 
 
-def test_validate_arguments_node_limit():
-    schema = {"type": "array", "items": {"type": "integer"}}
+def test_validate_arguments_node_limit() -> None:
+    schema: dict[str, object] = {"type": "array", "items": {"type": "integer"}}
     validate_arguments(list(range(SCHEMA_NODES_MAX - 1)), schema)
     with pytest.raises(ValueError, match="schema nodes"):
         validate_arguments(list(range(SCHEMA_NODES_MAX)), schema)
@@ -60,7 +60,7 @@ def test_validate_arguments_node_limit():
         validate_arguments([True], schema)
 
 
-def test_workspace_path_length_and_depth_limits(tmp_path):
+def test_workspace_path_length_and_depth_limits(tmp_path: Path) -> None:
     ws = Workspace(tmp_path)
     ws.path("a/" * (PATH_DEPTH_MAX - 1) + "leaf")
     with pytest.raises(WorkspaceError, match="components"):
@@ -70,7 +70,7 @@ def test_workspace_path_length_and_depth_limits(tmp_path):
         ws.path("x" * (PATH_LENGTH_MAX + 1))
 
 
-def test_workspace_list_stops_at_file_limit(tmp_path, monkeypatch):
+def test_workspace_list_stops_at_file_limit(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(workspace_module, "LIST_FILES_MAX", 3)
     monkeypatch.setattr(workspace_module, "LIST_VISITED_MAX", 3)
     for index in range(4):
@@ -86,7 +86,7 @@ def test_workspace_list_stops_at_file_limit(tmp_path, monkeypatch):
     assert sorted(listed["files"]) == ["file0.txt", "file1.txt", "file2.txt"]
 
 
-def test_check_count_limit_in_config(tmp_path, monkeypatch):
+def test_check_count_limit_in_config(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "xdg"))
     (tmp_path / "ws").mkdir()
 
@@ -105,17 +105,19 @@ def test_check_count_limit_in_config(tmp_path, monkeypatch):
         load_config(str(_write(tmp_path, f'[checks.{"n" * 65}]\ncmd=["true"]\n')))
 
 
-def _write(tmp_path, text: str):
+def _write(tmp_path: Path, text: str) -> Path:
     path = tmp_path / "bad.toml"
     path.write_text('workspace_dir="ws"\n' + text)
     return path
 
 
-def test_check_runner_asserts_programmer_errors_and_bounds_output(tmp_path, monkeypatch):
+def test_check_runner_asserts_programmer_errors_and_bounds_output(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     with pytest.raises(AssertionError):
         CheckRunner("not a workspace", {})  # type: ignore[arg-type]
     with pytest.raises(AssertionError):
-        CheckRunner(Workspace(tmp_path), {"bad": ("not", "a", "CheckConfig")})  # type: ignore
+        CheckRunner(Workspace(tmp_path), {"bad": ("not", "a", "CheckConfig")})  # type: ignore[arg-type]
     monkeypatch.setattr(checks_module, "OUTPUT_BYTES_MAX", 10)
     checks = {"noisy": CheckConfig((sys.executable, "-c", "print('a' * 50)"))}
     result = CheckRunner(Workspace(tmp_path, trusted=True), checks).run("noisy")
@@ -125,7 +127,7 @@ def test_check_runner_asserts_programmer_errors_and_bounds_output(tmp_path, monk
     assert result["stderr_truncated"] is False
 
 
-def test_editor_timeout_bounds_are_asserted(tmp_path):
+def test_editor_timeout_bounds_are_asserted() -> None:
     EditorBridge(None, timeout_s=TIMEOUT_S_MIN).close()
     EditorBridge(None, timeout_s=TIMEOUT_S_MAX).close()
     with pytest.raises(AssertionError):
@@ -137,14 +139,27 @@ def test_editor_timeout_bounds_are_asserted(tmp_path):
 
 
 class Recorder:
-    def __init__(self):
+    """Minimal MCPRuntime implementation: only `close()` matters for this test,
+    but `status`/`check`/`run` must exist with matching signatures to satisfy
+    the protocol structurally."""
+
+    def __init__(self) -> None:
         self.closed = False
 
-    def close(self):
+    def status(self) -> object:
+        return {"status": "ok"}
+
+    def check(self, name: str | None = None) -> object:
+        return {"status": "ok", "name": name}
+
+    def run(self, task: str) -> object:
+        return {"status": "ok", "task": task}
+
+    def close(self) -> None:
         self.closed = True
 
 
-def test_mcp_frame_limit_closes_connection_and_counts_frames():
+def test_mcp_frame_limit_closes_connection_and_counts_frames() -> None:
     runtime = Recorder()
     server = MCPServer(runtime)
     ping = json.dumps({"jsonrpc": "2.0", "id": 1, "method": "ping"}).encode()
@@ -161,17 +176,17 @@ def test_mcp_frame_limit_closes_connection_and_counts_frames():
     assert mcp_module.MAX_FRAME_BYTES == 1024 * 1024
 
 
-def test_runtime_constants_relationships():
+def test_runtime_constants_relationships() -> None:
     assert runtime_module.TOOL_RESULT_PREVIEW_CHARS < runtime_module.TOOL_RESULT_CHARS_MAX
     assert runtime_module.SCHEMA_DEPTH_MAX < runtime_module.SCHEMA_NODES_MAX
     assert set(runtime_module.STATIC_CHECK_KINDS) <= {"lint", "typecheck", "diagnostics"}
 
 
 class HugeOllama(http.server.BaseHTTPRequestHandler):
-    def log_message(self, *_):
+    def log_message(self, format: str, *args: object) -> None:
         pass
 
-    def do_GET(self):
+    def do_GET(self) -> None:
         body = b'{"models": [' + b"0," * (RESPONSE_BYTES_MAX // 2) + b"0]}"
         self.send_response(200)
         self.send_header("Content-Length", str(len(body)))
@@ -179,7 +194,7 @@ class HugeOllama(http.server.BaseHTTPRequestHandler):
         self.wfile.write(body)
 
 
-def test_backend_response_byte_limit():
+def test_backend_response_byte_limit() -> None:
     server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), HugeOllama)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
