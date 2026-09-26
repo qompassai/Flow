@@ -1,0 +1,22 @@
+name = "Nix"
+extensions = [".nix"]
+lsp = "nil / nixd"
+linter = "statix"
+formatter = "alejandra / nixfmt"
+test_runner = "nix flake check"
+build_tool = "nix build"
+package_manager = "nix"
+
+[frameworks]
+flake = "Nix flake with outputs"
+home-manager = "Home Manager module"
+nixos-module = "NixOS module"
+bare = "Simple nix expression"
+
+[install_hints]
+nil = "nil (nix profile install nixpkgs#nil)"
+alejandra = "alejandra (nix run nixpkgs#alejandra)"
+
+[project_templates]
+flake = "nix flake init"
+bare = "echo '{}' > default.nix"

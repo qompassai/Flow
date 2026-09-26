@@ -1,0 +1,23 @@
+[package]
+name = "phlow-agent"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# phlow-runtime: the safe agent runtime this crate's orchestrator drives.
+phlow-runtime = { path = "../phlow-runtime" }
+# Transport traits bound the orchestrator's generics, like Runtime's own.
+phlow-llm = { path = "../phlow-llm" }
+phlow-editor = { path = "../phlow-editor" }
+# serde_json: conversation and memory payloads are JSON, like Python.
+serde_json = "1"
+# rusqlite: SQLite FTS5 memory store (bundled build, no system SQLite).
+# Pinned: the memory schema depends on exact FTS5 behavior.
+rusqlite = { version = "=0.37.0", features = ["bundled"] }
+
+[dev-dependencies]
+# Test-only: build FlowConfig values for the orchestrator test.
+phlow-config = { path = "../phlow-config" }
+
+[features]
+default = []

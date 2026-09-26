@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- phlow mark: three bounded lanes (planner, coder, reviewer) flowing
+       left to right through one gate. Original artwork for this repo. -->
+  <rect x="2" y="2" width="60" height="60" rx="12" fill="#0d1117"/>
+  <g stroke-linecap="round" fill="none" stroke-width="4">
+    <path d="M10 20 C 24 20, 24 32, 38 32 S 52 32, 54 32" stroke="#58a6ff"/>
+    <path d="M10 32 C 24 32, 24 32, 38 32 S 52 32, 54 32" stroke="#3fb950"/>
+    <path d="M10 44 C 24 44, 24 32, 38 32 S 52 32, 54 32" stroke="#d29922"/>
+  </g>
+  <rect x="36" y="24" width="4" height="16" rx="2" fill="#f0f6fc"/>
+  <circle cx="54" cy="32" r="3" fill="#f0f6fc"/>
+</svg>

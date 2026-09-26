@@ -1,0 +1,27 @@
+[package]
+name = "phlow-codegen"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# serde_json: validator result envelopes and generator JSON output.
+serde_json = "1"
+# toml_edit: order-preserving TOML parser for the embedded language profiles.
+# Python's tomllib preserves document order, and profile_summary must render
+# frameworks in file order for byte-exact parity. toml_edit is by the toml-rs
+# org (same as toml) and is already in this workspace's dependency tree.
+toml_edit = "0.22"
+# phlow-tools: the code validator dispatches to the canonical disabled
+# lsp_check denial; it must never execute a language command itself.
+phlow-tools = { path = "../phlow-tools" }
+# phlow-runtime: the app generator submits build requests to the shared safe
+# runtime. Same crate the TUI drives.
+phlow-runtime = { path = "../phlow-runtime" }
+# phlow-llm: transport trait bounds for AppGenerator (OllamaBackend etc.).
+phlow-llm = { path = "../phlow-llm" }
+# phlow-editor: transport trait bounds for AppGenerator (NeovimBridge etc.).
+phlow-editor = { path = "../phlow-editor" }
+
+[dev-dependencies]
+# phlow-config: builds the FlowConfig for the generate() wiring test.
+phlow-config = { path = "../phlow-config" }

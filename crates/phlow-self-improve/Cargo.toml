@@ -1,0 +1,16 @@
+[package]
+name = "phlow-self-improve"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# serde_json: feedback row serialization (row keys preserved from Python).
+serde_json = "1"
+# rusqlite: the feedback store's SQLite backend. Bundled build, no system
+# SQLite, same pinned version as phlow-agent's memory store. Synchronous
+# access behind a Mutex: feedback recording is rare and must never spawn
+# background threads or queues.
+rusqlite = { version = "=0.37.0", features = ["bundled"] }
+# phlow-workspace: root-pinned, read-only skill directory listing/reads for
+# the read-only skill store compatibility layer.
+phlow-workspace = { path = "../phlow-workspace" }

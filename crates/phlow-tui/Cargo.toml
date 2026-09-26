@@ -1,0 +1,19 @@
+[package]
+name = "phlow-tui"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# serde_json: runtime results are JSON; the TUI renders them as pretty text.
+serde_json = "1"
+# ratatui: terminal widget rendering for the interactive chat loop. All panel
+# rendering is pure (widget, area) -> buffer; tests use TestBackend, never a
+# real terminal.
+ratatui = "0.30"
+# crossterm: terminal backend for ratatui's interactive draw loop. Input is
+# line-based stdin; crossterm is used only to drive the backend.
+crossterm = "0.29"
+# NOTE: phlow-tui does not depend on phlow-runtime yet. The commands drive a
+# narrow RuntimeFacade trait; the real runtime exposes no model
+# listing/switching, so wiring it belongs to Phase 6 (the CLI owns the
+# config and transport). Re-add phlow-runtime/phlow-llm/phlow-editor there.

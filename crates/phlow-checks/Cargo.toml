@@ -1,0 +1,15 @@
+[package]
+name = "phlow-checks"
+version = "0.2.0"
+edition = "2024"
+
+[dependencies]
+# phlow-workspace: checks run with the workspace as their cwd and consult
+# its trust/freshness gates. phlow-config: the CheckConfig type and its
+# bounds are the validated operator contract this crate executes.
+phlow-workspace = { path = "../phlow-workspace" }
+phlow-config = { path = "../phlow-config" }
+# rustix: process-group kill (kill_process_group) on timeout, so a timed-out
+# check's whole process tree dies. Safe wrappers only; the crate is
+# forbid(unsafe_code). Spawning uses std's safe CommandExt::process_group.
+rustix = { version = "1", features = ["process"] }

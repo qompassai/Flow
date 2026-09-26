@@ -1,0 +1,20 @@
+# phlow MCP socket (system instance).
+#
+# Same stdio model as the user units: `phlow serve` speaks
+# newline-delimited JSON-RPC on stdin/stdout and exits on EOF; this socket
+# turns each accepted connection into one `phlow-system.service` instance.
+# The socket lives in /run with the phlow group so local Neovim clients
+# (rose.nvim) can dial it without becoming root.
+[Unit]
+Description=phlow MCP socket (system)
+
+[Socket]
+ListenStream=/run/phlow.sock
+SocketUser=root
+SocketGroup=phlow
+SocketMode=0770
+Accept=yes
+MaxConnections=32
+
+[Install]
+WantedBy=sockets.target

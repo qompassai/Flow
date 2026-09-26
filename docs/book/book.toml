@@ -1,0 +1,10 @@
+[book]
+title = "phlow"
+authors = ["Matt"]
+description = "phlow: physics-informed flow — a bounded local multi-agent coding runtime, ported from Python to Rust. ELI5 documentation."
+language = "en"
+src = "src"
+
+[build]
+build-dir = "book"
+create-missing = false

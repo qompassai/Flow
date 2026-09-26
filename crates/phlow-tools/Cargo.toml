@@ -1,0 +1,27 @@
+[package]
+name = "phlow-tools"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# serde: the Serialize trait for driving the Python-compatible JSON
+# serializer (json_compat) over serde_json Values.
+serde = "1"
+# serde_json: the tool registry speaks JSON (schemas, args, envelopes) and
+# web search returns JSON-shaped results. Pure serialization, no I/O.
+# preserve_order keeps insertion order so the Python-compatible serializer
+# (json_compat) emits keys in Python dict order.
+serde_json = { version = "1", features = ["preserve_order"] }
+# phlow-mcp: canonical JSON Schema argument validation shared with the MCP
+# server, so registry dispatch enforces the same contracts as the wire.
+phlow-mcp = { path = "../phlow-mcp" }
+# phlow-checks: canonical fail-closed denial texts for the removed shell and
+# LSP execution paths. Byte-identical to the Python implementation.
+phlow-checks = { path = "../phlow-checks" }
+# phlow-workspace: descriptor-relative, root-pinned file reads/listings for
+# the read-only file operation tools. Never raw writes.
+phlow-workspace = { path = "../phlow-workspace" }
+# reqwest: DuckDuckGo Instant Answer / SearXNG HTTP for the web_search tool.
+# Blocking client, rustls only (no OpenSSL), proxies disabled, redirects
+# disabled, per-request 10s timeout. Same HTTP posture as phlow-llm.
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls-webpki-roots"] }

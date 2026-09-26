@@ -1,0 +1,43 @@
+# phlow agent runtime, system instance (socket-activated).
+#
+# The system twin of phlow.service: runs `phlow serve` as a dedicated
+# unprivileged `phlow` user/group against /var/lib/phlow. Like the user
+# unit, each connection spawns one instance whose stdin/stdout are the
+# connection; clean EOF exits are normal and are NOT restarted.
+#
+# TARGET-ONLY (not validated in this environment): creating the user and
+# group, installing the binary to /usr/local/bin, and enabling the units.
+# Every such step is spelled out in packaging/README.md.
+[Unit]
+Description=phlow agent runtime (per-connection MCP over stdio, system instance %i)
+Documentation=https://github.com/qompassai/phlow
+Requires=phlow-system.socket
+After=network-online.target
+
+[Service]
+Type=simple
+User=phlow
+Group=phlow
+ExecStart=/usr/local/bin/phlow serve --workspace /var/lib/phlow
+WorkingDirectory=/var/lib/phlow
+# --trusted is deliberately OFF: the system instance serves MCP to local
+# editors; workspace writes stay behind explicit operator opt-in.
+Restart=on-failure
+RestartSec=2s
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/var/lib/phlow
+# AF_UNIX: /run/phlow.sock peer + the Neovim socket. AF_INET: loopback to
+# Ollama only.
+RestrictAddressFamilies=AF_UNIX AF_INET
+# Like the user unit: the accepted socket is stdin/stdout (Accept=yes),
+# so stdout stays attached to the socket — it IS the JSON-RPC connection.
+# Logs go to stderr/the journal, never to the protocol stream.
+StandardInput=socket
+StandardOutput=socket
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

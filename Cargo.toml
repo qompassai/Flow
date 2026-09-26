@@ -1,3 +1,3 @@
 [workspace]
-members = ["crates/phlow-inference"]
+members = ["crates/phlow-inference", "crates/phlow-json", "crates/phlow-config", "crates/phlow-workspace", "crates/phlow-checks", "crates/phlow-mcp", "crates/phlow-editor", "crates/phlow-llm", "crates/phlow-runtime", "crates/phlow-agent", "crates/phlow-tools", "crates/phlow-codegen", "crates/phlow-self-improve", "crates/phlow-tui", "crates/phlow-cli"]
 resolver = "2"

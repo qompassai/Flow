@@ -1,0 +1,14 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=phlow
+GenericName=Local AI coding agent
+Comment=phlow terminal frontend: bounded local planner/coder/reviewer over Ollama
+Exec=phlow tui
+Terminal=true
+Categories=Development;Utility;
+Keywords=ai;agent;ollama;coding;
+Icon=phlow
+StartupNotify=false
+# The TUI needs a real terminal: Terminal=true is load-bearing, not
+# decoration. `phlow tui` on a pipe falls back to the headless line loop.

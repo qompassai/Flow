@@ -1,0 +1,40 @@
+[package]
+name = "phlow-runtime"
+version = "0.2.0"
+edition = "2024"
+
+[dependencies]
+# phlow-config: FlowConfig/OllamaConfig/AgentConfig; read, never duplicated.
+phlow-config = { path = "../phlow-config" }
+# phlow-json: narrowing for untrusted model/editor payloads.
+phlow-json = { path = "../phlow-json" }
+# phlow-workspace: descriptor-relative POSIX file I/O behind the file tools.
+phlow-workspace = { path = "../phlow-workspace" }
+# phlow-checks: operator-approved check execution for host verification.
+phlow-checks = { path = "../phlow-checks" }
+# phlow-editor: EditorBridge + EditorTransport behind the editor tools.
+phlow-editor = { path = "../phlow-editor" }
+# phlow-llm: OllamaBackend + LlmTransport behind the model turns.
+phlow-llm = { path = "../phlow-llm" }
+# phlow-mcp: validate_arguments (iterative, depth/node caps) and
+# Python-compatible json.dumps for tool-result truncation accounting.
+phlow-mcp = { path = "../phlow-mcp" }
+# serde_json: the report/tool value model.
+serde_json = { version = "1", features = ["preserve_order"] }
+# sha2: SHA-256 for verification fingerprints (byte-compatible with Python hashlib).
+# RustCrypto; widely audited.
+sha2 = { version = "0.10" }
+# tokio: single-owner worker runtime for the hand-rolled msgpack-RPC editor
+# transport (current-thread runtime, mpsc/oneshot, timeouts, Unix sockets).
+tokio = { version = "1", features = ["rt", "sync", "time", "net"] }
+# rmpv: msgpack-RPC codec for nvim_exec_lua frames (encode + decode).
+rmpv = { version = "1" }
+# reqwest: Ollama HTTP transport. blocking (the LlmTransport trait is sync),
+# rustls-tls-webpki-roots (no OpenSSL; Mozilla roots like Python's certifi),
+# no default features. Proxies and redirects are disabled in code.
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls-webpki-roots"] }
+
+
+[dev-dependencies]
+# rmpv: scripted msgpack-RPC socket peers in the transport tests.
+rmpv = { version = "1" }

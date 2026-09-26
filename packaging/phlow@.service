@@ -1,0 +1,45 @@
+# phlow agent runtime, user instance (socket-activated).
+#
+# Runs `phlow serve`: the Rust port's MCP server. Supersedes
+# systemd/flow.service, which invoked the legacy Python `flow status`
+# oneshot; that file is left untouched for the Python tree.
+#
+# Lifecycle: phlow.socket accepts a connection -> systemd spawns one
+# instance of this unit with the connection on stdin/stdout -> `phlow
+# serve` answers JSON-RPC frames until EOF -> the instance exits.
+# Restart=on-failure only fires on abnormal exits; a clean EOF shutdown
+# (exit 0) is the normal case and is NOT restarted.
+[Unit]
+Description=phlow agent runtime (per-connection MCP over stdio, instance %i)
+Documentation=https://github.com/qompassai/phlow
+Requires=phlow.socket
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/phlow serve --workspace %h
+# Adjust --workspace to the operator's projects directory. Never point it
+# at / or at a checkout you have not reviewed: --trusted is OFF here, so
+# the runtime is read-only outside the workspace, but the workspace itself
+# is the trust boundary.
+Restart=on-failure
+RestartSec=2s
+# Hardening: the runtime must never escalate, never touch the OS outside
+# the workspace, and never see another service's /tmp.
+NoNewPrivileges=yes
+ProtectSystem=strict
+PrivateTmp=yes
+ReadWritePaths=%h
+# AF_UNIX: the private Neovim socket (--nvim). AF_INET: loopback to Ollama
+# (127.0.0.1:11434). No other address families are needed; notably no
+# AF_NETLINK/AF_PACKET and no raw egress beyond loopback.
+RestrictAddressFamilies=AF_UNIX AF_INET
+# The accepted socket is stdin/stdout (implied by Accept=yes; stated for
+# operators reading this file). stdout IS the connection: it carries
+# JSON-RPC frames exclusively, so it must stay attached to the socket.
+# Logs go to stderr/the journal, never to the protocol stream.
+StandardInput=socket
+StandardOutput=socket
+StandardError=journal
+
+[Install]
+WantedBy=default.target

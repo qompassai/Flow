@@ -1,0 +1,16 @@
+[package]
+name = "phlow-config"
+version = "0.1.0"
+edition = "2024"
+description = "Validated operator configuration for the phlow agent runtime"
+license = "MIT OR Apache-2.0"
+
+[lib]
+name = "phlow_config"
+path = "src/lib.rs"
+
+[dependencies]
+# toml: the operator config format is TOML today and the schema stays
+# byte-identical with the Python side, so the TOML parser is load-bearing.
+# Only toml::Value is used; validation is explicit control flow, not derive.
+toml = "0.8"

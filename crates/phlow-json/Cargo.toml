@@ -1,0 +1,15 @@
+[package]
+name = "phlow-json"
+version = "0.1.0"
+edition = "2024"
+description = "Checked JSON narrowing at untrusted boundaries for the phlow agent runtime"
+license = "MIT OR Apache-2.0"
+
+[lib]
+name = "phlow_json"
+path = "src/lib.rs"
+
+[dependencies]
+# serde_json: the JSON value model. This crate IS the narrowing layer over
+# serde_json::Value, so the dependency is the subject matter, not a utility.
+serde_json = "1"

@@ -1,0 +1,18 @@
+[package]
+name = "phlow-mcp"
+version = "0.2.0"
+edition = "2024"
+
+[dependencies]
+# phlow-json: the narrowing layer for params/arguments objects. Wire frames
+# are parsed with plain serde_json (the serve loop already caps frames at
+# 1 MiB); nesting past serde_json's own recursion limit is a parse error.
+phlow-json = { path = "../phlow-json" }
+# serde_json: the JSON value model. preserve_order keeps insertion order so
+# wire frames serialize byte-identical to Python's dict-ordered frames.
+# arbitrary_precision keeps the source text of integers beyond u64 so
+# big-int request ids echo byte-exact, like Python's arbitrary-precision int.
+serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision"] }
+# ryu: shortest-round-trip float formatting, post-processed to Python repr
+# exponent style (e+16 / e-07) in json_ascii.
+ryu = "1"

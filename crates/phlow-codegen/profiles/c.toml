@@ -1,0 +1,22 @@
+name = "C"
+extensions = [".c", ".h"]
+lsp = "clangd"
+linter = "clang-tidy"
+formatter = "clang-format"
+test_runner = "cmocka / unity"
+build_tool = "cmake / meson"
+package_manager = "pacman"
+
+[frameworks]
+cmake-lib = "CMake library project"
+cmake-bin = "CMake binary project"
+meson = "Meson build system project"
+bare = "Single-file C program"
+
+[install_hints]
+clangd = "clang (pacman -S clang)"
+cmake = "cmake (pacman -S cmake)"
+
+[project_templates]
+cmake-bin = "mkdir {name} && cd {name} && cmake -DCMAKE_BUILD_TYPE=Debug .."
+bare = "touch {name}.c"

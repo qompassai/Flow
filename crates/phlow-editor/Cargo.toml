@@ -1,0 +1,14 @@
+[package]
+name = "phlow-editor"
+version = "0.2.0"
+edition = "2024"
+
+[dependencies]
+# phlow-json: checked narrowing over rose.nvim tool results (schemas and
+# call results are untrusted input until validated).
+phlow-json = { path = "../phlow-json" }
+# serde_json: the JSON value model for tool arguments and results.
+serde_json = { version = "1", features = ["preserve_order"] }
+# rustix: getuid() for the socket-ownership check. Safe wrappers only; the
+# crate is forbid(unsafe_code).
+rustix = { version = "1", features = ["process"] }

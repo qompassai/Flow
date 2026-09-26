@@ -1,0 +1,13 @@
+[package]
+name = "phlow-llm"
+version = "0.2.0"
+edition = "2024"
+
+[dependencies]
+# phlow-config: OllamaConfig (model, base URL, temperature, timeout, context
+# length) is defined there; this crate reads it, never duplicates it.
+phlow-config = { path = "../phlow-config" }
+# phlow-json: narrowing for untrusted model responses (choices/message shape).
+phlow-json = { path = "../phlow-json" }
+# serde_json: payload and response value model.
+serde_json = { version = "1", features = ["preserve_order"] }

@@ -1,0 +1,20 @@
+# phlow MCP socket (user instance).
+#
+# stdio versus socket, stated plainly: `phlow serve` speaks
+# newline-delimited JSON-RPC on its stdin/stdout and exits on EOF. It is
+# not a TCP daemon. This socket unit is the systemd-idiomatic way to serve
+# it: every accepted connection spawns one `phlow.service` instance whose
+# stdin/stdout ARE the connection. One connection, one process, no shared
+# state between sessions.
+[Unit]
+Description=phlow MCP socket (user)
+
+[Socket]
+ListenStream=%t/phlow.sock
+Accept=yes
+# One instance per connection; a burst of clients must not fork-bomb the
+# login session.
+MaxConnections=16
+
+[Install]
+WantedBy=sockets.target

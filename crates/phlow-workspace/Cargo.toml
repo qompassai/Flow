@@ -1,0 +1,10 @@
+[package]
+name = "phlow-workspace"
+version = "0.2.0"
+edition = "2024"
+
+[dependencies]
+# rustix: the only way to express O_NOFOLLOW and dirfd-relative opens
+# (openat/mkdirat/renameat/fstatat) without unsafe code. The crate's whole
+# containment story depends on these; std cannot express them.
+rustix = { version = "1", features = ["fs"] }
