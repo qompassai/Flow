@@ -10,3 +10,6 @@ venv/
 *.db-shm
 *.db-wal
 .env
+
+# Rust build output
+/target/

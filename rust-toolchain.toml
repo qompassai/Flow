@@ -1,0 +1,7 @@
+# Pinned Rust toolchain for the phlow Rust port.
+# Reviewed nightly date: 2026-09-25 (rustc 1.100.0-nightly, commit 3d7cf6e93).
+# Record `rustup show active-toolchain` if terminal/editor/CI disagree.
+[toolchain]
+channel = "nightly-2026-09-25"
+profile = "minimal"
+components = ["rustfmt", "clippy"]

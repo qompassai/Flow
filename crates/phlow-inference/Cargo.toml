@@ -1,0 +1,10 @@
+[package]
+name = "phlow-inference"
+version = "0.1.0"
+edition = "2024"
+description = "Inference-serving primitives for the phlow agent runtime, adapted from DeepSeek-V4.1-Flash (arXiv:2609.19969)"
+license = "MIT OR Apache-2.0"
+
+[lib]
+name = "phlow_inference"
+path = "src/lib.rs"

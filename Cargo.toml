@@ -1,0 +1,3 @@
+[workspace]
+members = ["crates/phlow-inference"]
+resolver = "2"
